@@ -188,7 +188,7 @@ import { useAuth } from '@/composables/useAuth'
 import {
   authorsApi,
   recipesApi,
-  savedApi,
+  likesApi,
   followingApi,
 } from '@/api'
 
@@ -214,22 +214,39 @@ const avatar = computed(
     'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=120&h=120&fit=crop'
 )
 
+function samePerson(author, currentUser) {
+  if (!author || !currentUser) return false
+  const name = (currentUser.name || '').trim().toLowerCase()
+  const handle = (currentUser.handle || '').trim().toLowerCase()
+  return (
+    (name && author.name?.trim().toLowerCase() === name) ||
+    (handle && author.handle?.trim().toLowerCase() === handle)
+  )
+}
+
 async function load() {
   loading.value = true
   error.value = ''
   try {
-    const [a, savedRows, pubs, follows] = await Promise.all([
+    const [a, likeRows, pubs, follows] = await Promise.all([
       authorsApi.getAll(),
-      savedApi.getByUser(user.value.id),
+      likesApi.get({ userId: user.value.id }),
       recipesApi.getByUser(user.value.id),
       followingApi.getByUser(user.value.id),
     ])
     authors.value = a
-    published.value = pubs
     following.value = follows
+    published.value = pubs.filter((recipe) =>
+      samePerson(
+        a.find((author) => Number(author.id) === Number(recipe.authorId)),
+        user.value
+      )
+    )
 
     const recipes = await Promise.all(
-      savedRows.map((s) => recipesApi.getById(s.recipeId).catch(() => null))
+      likeRows
+        .filter((row) => row && row.recipeId != null)
+        .map((row) => recipesApi.getById(row.recipeId).catch(() => null))
     )
     savedRecipes.value = recipes.filter(Boolean)
   } catch (e) {

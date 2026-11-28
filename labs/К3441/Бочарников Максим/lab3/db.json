@@ -53,8 +53,7 @@
       ],
       "image": "https://images.unsplash.com/photo-1565299585323-38d6b0865b47?w=800&h=600&fit=crop",
       "authorId": 1,
-      "userId": 1,
-      "likes": 342,
+      "likes": 343,
       "videoUrl": "https://www.youtube.com/embed/dQw4w9WgXcQ",
       "description": "Острый и свежий севиче: креветки «готовятся» в лайме, манго даёт сладость, чили — характер.",
       "steps": [
@@ -80,7 +79,6 @@
       ],
       "image": "https://images.unsplash.com/photo-1528735602780-2552fd46c7af?w=800&h=600&fit=crop",
       "authorId": 2,
-      "userId": 1,
       "likes": 518,
       "videoUrl": "https://www.youtube.com/embed/dQw4w9WgXcQ",
       "description": "Хрустящий багет, томлёная свинина, ветчина, швейцарский сыр и маринованные огурцы.",
@@ -185,7 +183,7 @@
       ],
       "image": "https://images.unsplash.com/photo-1464349095431-e9a21285b5f3?w=800&h=600&fit=crop",
       "authorId": 3,
-      "likes": 1024,
+      "likes": 1023,
       "videoUrl": "https://www.youtube.com/embed/dQw4w9WgXcQ",
       "description": "Кисло-сладкая начинка из лайма и сгущёнки в песочной корзиночке.",
       "steps": [
@@ -312,52 +310,39 @@
       "text": "API test comment",
       "date": "24.11.2026",
       "id": 9
+    },
+    {
+      "recipeId": 1,
+      "userId": 1,
+      "author": "Максим Бочарников",
+      "text": "ю.б",
+      "date": "28.11.2026",
+      "id": 10
     }
   ],
   "likes": [
     {
-      "id": 1,
-      "recipeId": 2,
-      "userId": 1
-    },
-    {
-      "id": 2,
-      "recipeId": 6,
-      "userId": 1
-    }
-  ],
-  "saved": [
-    {
-      "id": 1,
       "recipeId": 1,
-      "userId": 1
+      "userId": 1,
+      "id": 1
     },
     {
-      "id": 2,
       "recipeId": 2,
-      "userId": 1
-    },
-    {
-      "id": 3,
-      "recipeId": 4,
-      "userId": 1
-    },
-    {
-      "id": 4,
-      "recipeId": 6,
-      "userId": 1
+      "userId": 1,
+      "id": 2
     }
   ],
+  "saved": [],
   "following": [
-    {
-      "id": 1,
-      "authorId": 1,
-      "userId": 1
-    },
     {
       "id": 2,
       "authorId": 3,
       "userId": 1
+    },
+    {
+      "authorId": 2,
+      "userId": 1,
+      "id": 3
     }
   ]
 }

@@ -85,15 +85,31 @@ const local = reactive({
   ingredients: [...(props.modelValue.ingredients || [])],
 })
 
+function sameIngredients(a, b) {
+  if (a.length !== b.length) return false
+  return a.every((item, index) => item === b[index])
+}
+
+function sameFilters(a, b) {
+  return (
+    a.search === (b.search || '') &&
+    a.type === (b.type || '') &&
+    a.difficulty === (b.difficulty || '') &&
+    sameIngredients(a.ingredients, b.ingredients || [])
+  )
+}
+
 watch(
   local,
   () => {
-    emit('update:modelValue', {
+    const next = {
       search: local.search,
       type: local.type,
       difficulty: local.difficulty,
       ingredients: [...local.ingredients],
-    })
+    }
+    if (sameFilters(next, props.modelValue)) return
+    emit('update:modelValue', next)
   },
   { deep: true }
 )
@@ -101,10 +117,12 @@ watch(
 watch(
   () => props.modelValue,
   (v) => {
-    local.search = v.search || ''
-    local.type = v.type || ''
-    local.difficulty = v.difficulty || ''
-    local.ingredients = [...(v.ingredients || [])]
+    if (local.search !== (v.search || '')) local.search = v.search || ''
+    if (local.type !== (v.type || '')) local.type = v.type || ''
+    if (local.difficulty !== (v.difficulty || '')) local.difficulty = v.difficulty || ''
+    if (!sameIngredients(local.ingredients, v.ingredients || [])) {
+      local.ingredients = [...(v.ingredients || [])]
+    }
   },
   { deep: true }
 )

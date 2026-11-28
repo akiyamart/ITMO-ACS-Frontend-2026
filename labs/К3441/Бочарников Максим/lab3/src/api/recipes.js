@@ -3,7 +3,10 @@ class RecipesApi {
     this.API = instance
   }
 
-  getAll = () => this.API.get('/recipes').then((r) => r.data)
+  getAll = (params = {}) =>
+    this.API.get('/recipes', { params }).then((r) => r.data)
+
+  getIngredients = () => this.API.get('/ingredients').then((r) => r.data)
 
   getById = (id) => this.API.get(`/recipes/${id}`).then((r) => r.data)
 

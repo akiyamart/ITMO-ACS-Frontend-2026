@@ -1,9 +1,10 @@
-import { computed, ref } from 'vue'
+import { computed, onScopeDispose, ref, watch } from 'vue'
 import { recipesApi, authorsApi, likesApi, apiURL } from '@/api'
 import { useAuthStore } from '@/stores/auth'
 
 export function useRecipes() {
   const recipes = ref([])
+  const allIngredients = ref([])
   const authors = ref([])
   const likedIds = ref(new Set())
   const loading = ref(false)
@@ -23,38 +24,37 @@ export function useRecipes() {
     return map
   })
 
-  const allIngredients = computed(() =>
-    Array.from(new Set(recipes.value.flatMap((r) => r.ingredients || []))).sort(
-      (a, b) => a.localeCompare(b, 'ru')
-    )
-  )
+  let recipesRequest = 0
+  let filterTimer
+  let lastQuery = recipeParamsKey(filters.value)
 
-  const filteredRecipes = computed(() => {
-    const { search, type, difficulty, ingredients } = filters.value
-    const q = search.trim().toLowerCase()
-
-    return recipes.value.filter((recipe) => {
-      if (type && recipe.type !== type) return false
-      if (difficulty && recipe.difficulty !== difficulty) return false
-      if (q) {
-        const hay = [
-          recipe.title,
-          recipe.description,
-          recipe.type,
-          ...(recipe.ingredients || []),
-        ]
-          .join(' ')
-          .toLowerCase()
-        if (!hay.includes(q)) return false
-      }
-      if (ingredients.length) {
-        for (const ing of ingredients) {
-          if (!(recipe.ingredients || []).includes(ing)) return false
-        }
-      }
-      return true
+  function recipeParamsKey(value = filters.value) {
+    return JSON.stringify({
+      q: value.search.trim(),
+      type: value.type,
+      difficulty: value.difficulty,
+      ingredients: value.ingredients,
     })
-  })
+  }
+
+  function recipeParams() {
+    const { search, type, difficulty, ingredients } = filters.value
+    const params = {}
+    const q = search.trim()
+    if (q) params.q = q
+    if (type) params.type = type
+    if (difficulty) params.difficulty = difficulty
+    if (ingredients.length) params.ingredients = ingredients.join(',')
+    return params
+  }
+
+  async function loadRecipes() {
+    const id = ++recipesRequest
+    const data = await recipesApi.getAll(recipeParams())
+    if (id !== recipesRequest) return
+    recipes.value = data
+    error.value = ''
+  }
 
   async function checkApi() {
     try {
@@ -78,12 +78,13 @@ export function useRecipes() {
 
     try {
       const auth = useAuthStore()
-      const [r, a] = await Promise.all([
-        recipesApi.getAll(),
+      const [, a, ingredients] = await Promise.all([
+        loadRecipes(),
         authorsApi.getAll(),
+        recipesApi.getIngredients(),
       ])
-      recipes.value = r
       authors.value = a
+      allIngredients.value = ingredients
 
       if (auth.isLoggedIn) {
         try {
@@ -101,6 +102,24 @@ export function useRecipes() {
       loading.value = false
     }
   }
+
+  onScopeDispose(() => clearTimeout(filterTimer))
+
+  watch(
+    filters,
+    () => {
+      const key = recipeParamsKey()
+      if (key === lastQuery) return
+      lastQuery = key
+      clearTimeout(filterTimer)
+      filterTimer = setTimeout(() => {
+        loadRecipes().catch((e) => {
+          error.value = e.message || 'Не удалось применить фильтры'
+        })
+      }, 250)
+    },
+    { deep: true }
+  )
 
   function resetFilters() {
     filters.value = {
@@ -146,7 +165,7 @@ export function useRecipes() {
     error,
     apiDown,
     filters,
-    filteredRecipes,
+    filteredRecipes: recipes,
     allIngredients,
     loadCatalog,
     resetFilters,
